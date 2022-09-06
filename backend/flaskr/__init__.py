@@ -5,44 +5,86 @@ from flask_cors import CORS
 import random
 
 from models import setup_db, Question, Category
+import collections
+collections.Iterable = collections.abc.Iterable
 
 QUESTIONS_PER_PAGE = 10
+
+# Helper method:
+def paginated_question(request, selection):
+    page = request.args.get('page', 1, type=int)
+    start = (page -1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
+    
+    formatted_question = [item.formart() for item in selection]
+    current_questions = formatted_question[start:end]
+
+    return current_questions
+
+    if(len(formatted_question) < start):
+        abort(400)
 
 
 
 def create_app(test_config=None):
-    # create and configure the app
+    # creating and configuring my app
     app = Flask(__name__)
     setup_db(app)
+    
+    # CORS Set up that Allows '*' for origins.
+    collections.Callable = collections.abc.Callable
+    cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-    """
-    @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
-    """
-
-    """
-    @TODO: Use the after_request decorator to set Access-Control-Allow
-    """
-
-    """
-    @TODO:
-    Create an endpoint to handle GET requests
-    for all available categories.
-    """
+    # CORS Headers
+    @app.after_request
+    def after_resquest(response):
+        response.headers.add("Access-Allow-Headers", "Content-Type,Authentication,true")
+        response.headers.add("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS")
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        return response
 
 
-    """
-    @TODO:
-    Create an endpoint to handle GET requests for questions,
-    including pagination (every 10 questions).
-    This endpoint should return a list of questions,
-    number of total questions, current category, categories.
+    # Endpoint to handle GET requests for all acategories.
+    @app.route('/categories')
+    def retrieve_categories():
+        get_categories = Category.query.order_by(Category.id).all()
+        
+        try:
+            result = {cat.id: cat.type for cat in get_categories}
+            return({
+                'success': True,
+                'categories': result,
+                'total_categories': len(result)
+            })
+        
+        except:
+            abort(422)
 
-    TEST: At this point, when you start the application
-    you should see questions and categories generated,
-    ten questions per page and pagination at the bottom of the screen for three pages.
-    Clicking on the page numbers should update the questions.
-    """
 
+    # An endpoint to handle GET requests for questions
+
+    @app.route('/questions')
+    def retrieve_questions():
+        questions = Question.query.order_by(Question.id).all()
+        categories = Category.query.order_by(Category.id).all()
+    
+        categories_list = {}
+    
+        try:
+
+            for category in categories:
+                categories_list[category.id] = category.type
+      
+            return jsonify({
+                'questions': paginated_question(request, questions),
+                'total_questions': len(questions),
+                'categories': categories_list,
+                'current_category': None
+            })
+
+        except:
+            abort(422)
+    
     """
     @TODO:
     Create an endpoint to DELETE question using a question ID.
@@ -50,7 +92,7 @@ def create_app(test_config=None):
     TEST: When you click the trash icon next to a question, the question will be removed.
     This removal will persist in the database and when you refresh the page.
     """
-
+    
     """
     @TODO:
     Create an endpoint to POST a new question,

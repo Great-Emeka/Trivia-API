@@ -16,7 +16,7 @@ def paginated_question(request, selection):
     start = (page -1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
     
-    formatted_question = [item.formart() for item in selection]
+    formatted_question = [item.format() for item in selection]
     current_questions = formatted_question[start:end]
 
     return current_questions
@@ -49,6 +49,9 @@ def create_app(test_config=None):
     def retrieve_categories():
         get_categories = Category.query.order_by(Category.id).all()
         
+        if len(get_categories) == 0:
+            abort(404)
+        
         try:
             result = {cat.id: cat.type for cat in get_categories}
             return({
@@ -62,24 +65,26 @@ def create_app(test_config=None):
 
 
     # An endpoint to handle GET requests for questions
-
+    # This endpoint should return a list of questions, number of total questions, current category, categories.
     @app.route('/questions')
     def retrieve_questions():
-        questions = Question.query.order_by(Question.id).all()
+        selection = Question.query.order_by(Question.id).all()
         categories = Category.query.order_by(Category.id).all()
-    
-        categories_list = {}
-    
-        try:
 
-            for category in categories:
-                categories_list[category.id] = category.type
-      
+        questions = paginated_question(request, selection)
+        
+        if len(questions) == 0:
+            abort(404)
+        
+        try:
+            categories_list = {cat.id: cat.type for cat in categories}
+
             return jsonify({
-                'questions': paginated_question(request, questions),
-                'total_questions': len(questions),
-                'categories': categories_list,
-                'current_category': None
+                'success': True,
+                'questions': list(questions),
+                'total_questions': len(selection),
+                'current_category': None,
+                'categories': categories_list
             })
 
         except:

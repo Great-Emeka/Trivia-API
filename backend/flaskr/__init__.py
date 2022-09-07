@@ -53,7 +53,7 @@ def create_app(test_config=None):
             abort(404)
         
         try:
-            result = {cat.id: cat.type for cat in get_categories}
+            result = {cat.id : cat.type for cat in get_categories}
             return({
                 'success': True,
                 'categories': result,
@@ -77,7 +77,7 @@ def create_app(test_config=None):
             abort(404)
         
         try:
-            categories_list = {cat.id: cat.type for cat in categories}
+            categories_list = {cat.id : cat.type for cat in categories}
 
             return jsonify({
                 'success': True,
@@ -90,14 +90,30 @@ def create_app(test_config=None):
         except:
             abort(422)
     
-    """
-    @TODO:
-    Create an endpoint to DELETE question using a question ID.
+   
+    # Creating an endpoint to DELETE question using a question ID.
+    @app.route('/questions/<int:question_id>', methods=['DELETE'])
+    def delete_question(question_id):
+        # Quering the Question model to filter based on the ID
+        question = Question.query.filter_by(id=question_id).one_or_none()
 
-    TEST: When you click the trash icon next to a question, the question will be removed.
-    This removal will persist in the database and when you refresh the page.
-    """
-    
+        if question is None:
+            abort(404)
+        
+        try:
+            question.delete()
+            # Total number of questions remaining
+            total_questions = len(Question.query.all())
+
+            return({
+                'success': True,
+                'deleted_question_id': question_id,
+                'total_questions': total_questions
+            })
+        
+        except:
+            abort(422)
+
     """
     @TODO:
     Create an endpoint to POST a new question,

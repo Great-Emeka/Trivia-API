@@ -253,6 +253,51 @@ def create_app(test_config=None):
     """
     Creating necessary error handlers for all expected errors
     """
+    # Request cannot be processed
+    @app.errorhandler(422)
+    def unprocesseable(error):
+        return(
+            jsonify({
+                'success': False, 
+                'error': 422,
+                'message': 'request cannot be processed'
+            }),422
+
+        )
+    
+    # Resource not found Error
+    @app.errorhandler(404)
+    def not_found(error):
+        return( 
+            jsonify({
+                'success': False, 
+                'error': 404,
+                'message': 'resource not found'
+            }),404
+        )
+
+    # Bad request
+    @app.errorhandler(400)
+    def bad_request(error):
+        return(
+            jsonify({
+                'success': False, 
+                'error': 400,
+                'message': 'bad request'
+            }),400
+
+        )
+
+    # method not alllowed
+    @app.errorhandler(405)
+    def not_allowed(error):
+        return(
+            jsonify({
+                'success': False, 
+                'error': 405,
+                'message': 'method not alllowed'
+            }),405
+        )
 
     return app
 

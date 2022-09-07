@@ -1,3 +1,4 @@
+from hashlib import new
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -114,27 +115,60 @@ def create_app(test_config=None):
         except:
             abort(422)
 
+    
     """
-    @TODO:
-    Create an endpoint to POST a new question,
+    An endpoint to POST a new question,
     which will require the question and answer text,
     category, and difficulty score.
-
-    TEST: When you submit a question on the "Add" tab,
-    the form will clear and the question will appear at the end of the last page
-    of the questions list in the "List" tab.
     """
+    @app.route('/questions', methods=['POST'])
+    def create_question():
+        questions = Question.query.order_by(Question.id).all()
+        body = request.get_json()
 
+        # getting the input fields from form
+        new_question = body.get('question')
+        new_answer = body.get('answer')
+        new_category = body.get('category')
+        new_difficulty = body.get('difficulty')
+
+        # throw error if none of these fields have value
+        if (body, new_category, new_question, new_answer, new_difficulty) == None:
+            abort(422)
+        
+        try:
+            question = Question(
+                question = new_question,
+                answer = new_answer,
+                category = new_category,
+                difficulty = new_difficulty
+            )
+
+            # Insert into Question model is everything is fine
+            question.insert()
+
+            return jsonify({
+                'success': True,
+                'created question': question.id,
+                'questions': paginated_question(request, questions),
+                'total_questions': len(questions)
+            })
+        
+        except:
+            abort(422)
+    
+    # Sample Request:
+    # curl -X POST -H "Content-Type: application/json" -d '{"question":"what is my country?", "answer":"Nigeria", "category":"5", "difficulty":"2"}' http://127.0.0.1:5000/questions 
+    
+    
     """
-    @TODO:
-    Create a POST endpoint to get questions based on a search term.
+    A POST endpoint to get questions based on a search term.
     It should return any questions for whom the search term
     is a substring of the question.
-
-    TEST: Search by any phrase. The questions list will update to include
-    only question that include that string within their question.
-    Try using the word "title" to start.
     """
+    
+
+
 
     """
     @TODO:

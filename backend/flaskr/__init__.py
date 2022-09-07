@@ -149,7 +149,7 @@ def create_app(test_config=None):
 
             return jsonify({
                 'success': True,
-                'created question': question.id,
+                'created_question': question.id,
                 'questions': paginated_question(request, questions),
                 'total_questions': len(questions)
             })
@@ -166,18 +166,51 @@ def create_app(test_config=None):
     It should return any questions for whom the search term
     is a substring of the question.
     """
-    
+    @app.route('/questions/search', methods=['POST'])
+    def search_questions():
+        search_term = request.args.get('search')
+        selection = Question.query.filter(Question.question.ilike(f'%{search_term}%')).all()
+        
+        search_questions = paginated_question(request, selection)
+
+        if search_term == None:
+            abort(404)
+
+        return jsonify({
+                "success": True,
+                "questions": list(search_questions),
+                "total_questions": len(selection),
+            })
 
 
 
     """
-    @TODO:
-    Create a GET endpoint to get questions based on category.
-
-    TEST: In the "List" tab / main screen, clicking on one of the
-    categories in the left column will cause only questions of that
-    category to be shown.
+    Creating a GET endpoint to get questions based on category.
     """
+    @app.route('/categories/<int:category_id>/questions', methods=['GET'])
+    def get_questions_by_category(category_id):
+        categories = Category.query.all()
+
+        try:
+            selection = Question.query.filter(category_id == Question.category).all()
+
+            current_questions = paginated_question(request, selection)
+
+            if category_id > len(categories):
+                abort(404)
+            
+            return jsonify({
+                    "success": True,
+                    "questions": list(current_questions),
+                    "total_questions": len(selection),
+                    "current_category": [cat.type for cat in categories if cat.id == category_id ]
+            })
+        
+        except:
+            abort(404)
+        # Sample request:
+        # http://127.0.0.1:5000/categories/3/questions
+
 
     """
     @TODO:

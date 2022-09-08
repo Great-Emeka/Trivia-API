@@ -9,6 +9,8 @@ from models import setup_db, Question, Category
 import collections
 collections.Iterable = collections.abc.Iterable
 
+
+# declaring global variable
 QUESTIONS_PER_PAGE = 10
 
 # Helper method:
@@ -22,18 +24,14 @@ def paginated_question(request, selection):
 
     return current_questions
 
-    if(len(formatted_question) < start):
-        abort(400)
-
 
 
 def create_app(test_config=None):
     # creating and configuring my app
     app = Flask(__name__)
     setup_db(app)
-    
+
     # CORS Set up that Allows '*' for origins.
-    collections.Callable = collections.abc.Callable
     cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
     # CORS Headers
@@ -295,7 +293,7 @@ def create_app(test_config=None):
             jsonify({
                 'success': False, 
                 'error': 405,
-                'message': 'method not alllowed'
+                'message': 'method not allowed'
             }),405
         )
 

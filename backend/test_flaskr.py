@@ -118,6 +118,61 @@ class TriviaTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 404)
         self.assertEqual(data['success'], False)
         self.assertEqual(data['message'], 'resource not found')
+    
+    # Test to get all categories
+    def test_get_categories(self):
+        res = self.client().get('/categories')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['categories']))
+
+    def test_404_sent_requesting_non_existing_category(self):
+        res = self.client().get('/categories/9999')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'resource not found')
+    
+    # Test for showing questions of a specific category
+    def test_get_questions_per_category(self):
+        res = self.client().get('/categories/1/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+        self.assertTrue(data['total_questions'])
+        self.assertTrue(data['current_category'])
+
+    def test_404_get_questions_per_category(self):
+        res = self.client().get('/categories/a/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "resource not found")
+    
+    # Test to get quiz
+    def test_play_quiz(self):
+        new_quiz_round = {'previous_questions': [], 'quiz_category': {'type': 'Entertainment', 'id': 5}}
+
+        res = self.client().post('/quizzes', json=new_quiz_round)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_404_play_quiz(self):
+        new_quiz_round = {'previous_questions': []}
+        res = self.client().post('/quizzes', json=new_quiz_round)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 422)
+        self.assertEqual(data["success"], False)
+        self.assertEqual(data["message"], "request cannot be processed")
 
 
 # Make the tests conveniently executable
